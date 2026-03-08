@@ -68,15 +68,140 @@ graph TB
 
 ### Deployment Architecture
 
-The system will be deployed on AWS using a containerized microservices approach:
+The system is designed to be deployed on AWS with flexible infrastructure options that can be selected based on specific deployment needs, scale requirements, and operational preferences.
 
-- **API Gateway**: AWS API Gateway for external system integration
-- **Compute**: ECS Fargate for containerized services
-- **Storage**: PostgreSQL RDS for structured data, S3 for raw data and models
-- **Streaming**: Kinesis Data Streams for real-time data processing
-- **ML Platform**: SageMaker for model training and inference
-- **Monitoring**: CloudWatch for system monitoring and alerting
-- **Security**: IAM for access control, Secrets Manager for credentials
+#### Compute Options
+
+The microservices can be deployed using any of the following AWS compute services:
+
+- **AWS Lambda**: Serverless functions ideal for event-driven services with variable load patterns. Best for services like data ingestion, anomaly detection triggers, and alert notifications that benefit from automatic scaling and pay-per-use pricing.
+
+- **Amazon EC2**: Virtual machines providing full control over the compute environment. Suitable for services requiring specific configurations, persistent connections, or custom runtime environments.
+
+- **Amazon ECS**: Container orchestration for Docker-based microservices. Offers flexibility in deployment (EC2 or Fargate launch types) and is well-suited for the entire microservices architecture with consistent container management.
+
+**Recommendation**: Consider Lambda for event-driven components (data ingestion, alerts), ECS for core processing services (baseline learning, anomaly detection, root cause analysis), and EC2 for specialized ML workloads requiring GPU acceleration.
+
+#### API and Application Layer Options
+
+- **Amazon API Gateway**: Managed API service for RESTful and WebSocket APIs. Provides built-in authentication, rate limiting, and request/response transformation. Ideal for external system integration and mobile/web client access.
+
+- **AWS Amplify**: Full-stack development platform that can host the web dashboard and provide backend API capabilities. Simplifies frontend deployment with built-in CI/CD, authentication, and API management.
+
+**Recommendation**: Use API Gateway for robust external integrations with retail systems, or Amplify for rapid full-stack deployment with integrated frontend hosting.
+
+#### Storage Options
+
+- **Amazon DynamoDB**: NoSQL database offering single-digit millisecond performance at any scale. Suitable for high-velocity anomaly records, real-time detection results, and session data requiring fast read/write operations.
+
+- **Amazon RDS (PostgreSQL)**: Managed relational database for structured data with complex querying needs. Ideal for historical analysis, reporting, and data requiring ACID compliance and complex joins.
+
+- **Amazon S3**: Object storage for raw data files, ML model artifacts, data lake storage, and long-term archival. Essential for storing ingested raw data, trained models, and backup data.
+
+**Recommendation**: Use a hybrid approach—DynamoDB for real-time anomaly detection and alerts, RDS for historical analysis and reporting, and S3 for raw data storage and ML model artifacts.
+
+#### Additional AWS Services
+
+The following AWS services complement the core infrastructure:
+
+- **Amazon Kinesis Data Streams**: Real-time data streaming for continuous data ingestion from retail systems
+- **Amazon SageMaker**: ML platform for model training, tuning, and inference endpoints
+- **Amazon CloudWatch**: Monitoring, logging, and alerting for system health and performance
+- **AWS IAM**: Identity and access management for secure service-to-service and user authentication
+- **AWS Secrets Manager**: Secure storage for API keys, database credentials, and sensitive configuration
+- **Amazon SNS/SQS**: Message queuing and pub/sub for asynchronous service communication
+- **AWS Step Functions**: Orchestration for complex multi-step workflows like root cause analysis
+
+#### Deployment Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "External Systems"
+        POS[POS Systems]
+        INV[Inventory Management]
+        PRICE[Pricing Engines]
+    end
+    
+    subgraph "AWS Infrastructure"
+        subgraph "API Layer Options"
+            APIGW[API Gateway / Amplify]
+        end
+        
+        subgraph "Compute Layer Options"
+            LAMBDA[Lambda Functions]
+            ECS[ECS Containers]
+            EC2[EC2 Instances]
+        end
+        
+        subgraph "Storage Layer Options"
+            DYNAMO[(DynamoDB)]
+            RDS[(RDS PostgreSQL)]
+            S3[(S3 Buckets)]
+        end
+        
+        subgraph "Supporting Services"
+            KINESIS[Kinesis Streams]
+            SAGEMAKER[SageMaker]
+            CLOUDWATCH[CloudWatch]
+            IAM[IAM]
+        end
+    end
+    
+    subgraph "Client Applications"
+        WEB[Web Dashboard]
+        MOBILE[Mobile Alerts]
+    end
+    
+    POS --> APIGW
+    INV --> APIGW
+    PRICE --> APIGW
+    
+    APIGW --> LAMBDA
+    APIGW --> ECS
+    APIGW --> EC2
+    
+    LAMBDA --> KINESIS
+    ECS --> KINESIS
+    EC2 --> KINESIS
+    
+    KINESIS --> DYNAMO
+    KINESIS --> RDS
+    KINESIS --> S3
+    
+    DYNAMO --> SAGEMAKER
+    RDS --> SAGEMAKER
+    S3 --> SAGEMAKER
+    
+    CLOUDWATCH -.-> LAMBDA
+    CLOUDWATCH -.-> ECS
+    CLOUDWATCH -.-> EC2
+    
+    IAM -.-> APIGW
+    IAM -.-> LAMBDA
+    IAM -.-> ECS
+    IAM -.-> EC2
+    
+    APIGW --> WEB
+    APIGW --> MOBILE
+    LAMBDA --> WEB
+    LAMBDA --> MOBILE
+```
+
+#### Deployment Flexibility
+
+The architecture supports multiple deployment patterns:
+
+1. **Serverless-First**: Lambda + API Gateway + DynamoDB + S3 for minimal operational overhead
+2. **Container-Based**: ECS + API Gateway + RDS + S3 for consistent microservices deployment
+3. **Hybrid**: Lambda for event-driven components, ECS for core services, combining benefits of both approaches
+4. **Full-Stack Rapid**: Amplify + Lambda + DynamoDB for accelerated development and deployment
+
+The specific combination should be chosen based on:
+- **Scale requirements**: Expected data volume and processing throughput
+- **Operational expertise**: Team familiarity with serverless vs. container management
+- **Cost optimization**: Balance between compute costs and operational efficiency
+- **Performance needs**: Latency requirements and processing complexity
+- **Integration complexity**: Existing infrastructure and tooling compatibility
 
 ## Components and Interfaces
 
