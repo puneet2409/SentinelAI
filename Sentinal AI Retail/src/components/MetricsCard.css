@@ -1,0 +1,35 @@
+.metrics-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.metrics-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.metrics-icon {
+  font-size: 2rem;
+}
+
+.metrics-content {
+  flex: 1;
+}
+
+.metrics-title {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.metrics-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #1f2937;
+}

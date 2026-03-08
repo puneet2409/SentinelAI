@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Sentinel AI - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .dashboard-header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metrics-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .metrics-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .metrics-icon {
+            font-size: 2rem;
+        }
+
+        .metrics-content {
+            flex: 1;
+        }
+
+        .metrics-title {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .metrics-value {
+            font-size: 1.75rem;
+            font-weight: 600;
+        }
+
+        .anomalies-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .anomalies-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .anomaly-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .anomaly-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem;
+            cursor: pointer;
+        }
+
+        .anomaly-main {
+            display: flex;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .anomaly-icon {
+            font-size: 1.5rem;
+        }
+
+        .anomaly-info h3 {
+            font-size: 1.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .anomaly-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .severity-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .severity-critical {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .severity-high {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .severity-medium {
+            background: #dbeafe;
+            color: #3b82f6;
+        }
+
+        .severity-low {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+
+        .expand-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        .anomaly-details {
+            border-top: 1px solid #e5e7eb;
+            padding: 1.25rem;
+            display: none;
+        }
+
+        .anomaly-details.expanded {
+            display: block;
+        }
+
+        .detail-section {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+
+        .detail-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        .confidence-bar {
+            margin-top: 0.5rem;
+        }
+
+        .confidence-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .confidence-track {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981);
+            transition: width 0.3s;
+        }
+
+        .recommendation {
+            background: #f0fdf4;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 3px solid #10b981;
+        }
+
+        .recommendation .detail-label {
+            color: #059669;
+        }
+
+        .recommendation .detail-text {
+            color: #047857;
+        }
+
+        .update-indicator {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: #10b981;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .update-indicator.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="update-indicator" id="updateIndicator">Data Updated</div>
+    
+    <div class="dashboard">
+        <header class="dashboard-header">
+            <h1>🛡️ Retail Sentinel AI</h1>
+            <p>Real-time Anomaly Detection & Monitoring</p>
+        </header>
+
+        <div class="metrics-grid" id="metricsGrid"></div>
+
+        <div class="anomalies-section">
+            <h2>Active Anomalies</h2>
+            <div class="anomalies-list" id="anomaliesList"></div>
+        </div>
+    </div>
+
+    <script>
+        const anomalyTypes = [
+            'Inventory Discrepancy',
+            'Pricing Anomaly',
+            'Sales Drop',
+            'Unusual Transaction Pattern',
+            'Stock-out Risk'
+        ];
+
+        const stores = ['Store A', 'Store B', 'Store C', 'Store D'];
+        const severities = ['Critical', 'High', 'Medium', 'Low'];
+
+        function generateDescription(type, store) {
+            const descriptions = {
+                'Inventory Discrepancy': `${store} showing ${Math.floor(Math.random() * 50) + 10}% inventory variance`,
+                'Pricing Anomaly': `Unusual pricing detected for ${Math.floor(Math.random() * 20) + 5} items in ${store}`,
+                'Sales Drop': `${store} experiencing ${Math.floor(Math.random() * 30) + 10}% sales decline`,
+                'Unusual Transaction Pattern': `Abnormal transaction frequency detected in ${store}`,
+                'Stock-out Risk': `${Math.floor(Math.random() * 15) + 5} items at risk of stock-out in ${store}`
+            };
+            return descriptions[type] || `Anomaly detected in ${store}`;
+        }
+
+        function generateRootCause(type) {
+            const causes = {
+                'Inventory Discrepancy': 'Potential data sync issue between POS and inventory system',
+                'Pricing Anomaly': 'Promotion schedule conflict with regular pricing engine',
+                'Sales Drop': 'Competitor promotion activity detected in nearby location',
+                'Unusual Transaction Pattern': 'Possible system integration delay causing batch processing',
+                'Stock-out Risk': 'Supply chain delay combined with higher than expected demand'
+            };
+            return causes[type] || 'Root cause analysis in progress';
+        }
+
+        function generateRecommendation(type) {
+            const recommendations = {
+                'Inventory Discrepancy': 'Trigger immediate inventory reconciliation and verify POS sync status',
+                'Pricing Anomaly': 'Review promotion schedule and adjust pricing rules to resolve conflicts',
+                'Sales Drop': 'Implement targeted promotion and monitor competitor activity',
+                'Unusual Transaction Pattern': 'Check system integration health and consider real-time processing',
+                'Stock-out Risk': 'Expedite reorder and consider alternative suppliers for critical items'
+            };
+            return recommendations[type] || 'Investigating optimal corrective action';
+        }
+
+        function getTimeAgo(timestamp) {
+            const minutes = Math.floor((Date.now() - timestamp) / 60000);
+            if (minutes < 1) return 'Just now';
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            return `${hours}h ago`;
+        }
+
+        function generateMockData() {
+            const anomalies = Array.from({ length: Math.floor(Math.random() * 5) + 3 }, (_, i) => {
+                const severity = severities[Math.floor(Math.random() * severities.length)];
+                const type = anomalyTypes[Math.floor(Math.random() * anomalyTypes.length)];
+                const store = stores[Math.floor(Math.random() * stores.length)];
+                
+                return {
+                    id: `anomaly-${Date.now()}-${i}`,
+                    store,
+                    type,
+                    severity,
+                    detectedAt: Date.now() - Math.random() * 3600000,
+                    description: generateDescription(type, store),
+                    rootCause: generateRootCause(type),
+                    recommendation: generateRecommendation(type),
+                    confidence: Math.floor(Math.random() * 20) + 80
+                };
+            });
+
+            const metrics = {
+                totalAnomalies: anomalies.length,
+                criticalCount: anomalies.filter(a => a.severity === 'Critical').length,
+                systemHealth: Math.floor(Math.random() * 10) + 90,
+                avgResponseTime: Math.floor(Math.random() * 10) + 15
+            };
+
+            return { anomalies, metrics };
+        }
+
+        function renderMetrics(metrics) {
+            const metricsGrid = document.getElementById('metricsGrid');
+            metricsGrid.innerHTML = `
+                <div class="metrics-card">
+                    <div class="metrics-icon" style="color: #f59e0b;">⚠️</div>
+                    <div class="metrics-content">
+                        <p class="metrics-title">Total Anomalies</p>
+                        <p class="metrics-value">${metrics.totalAnomalies}</p>
+                    </div>
+                </div>
+                <div class="metrics-card">
+                    <div class="metrics-icon" style="color: #ef4444;">🔴</div>
+                    <div class="metrics-content">
+                        <p class="metrics-title">Critical</p>
+                        <p class="metrics-value">${metrics.criticalCount}</p>
+                    </div>
+                </div>
+                <div class="metrics-card">
+                    <div class="metrics-icon" style="color: #10b981;">💚</div>
+                    <div class="metrics-content">
+                        <p class="metrics-title">System Health</p>
+                        <p class="metrics-value">${metrics.systemHealth}%</p>
+                    </div>
+                </div>
+                <div class="metrics-card">
+                    <div class="metrics-icon" style="color: #3b82f6;">⏱️</div>
+                    <div class="metrics-content">
+                        <p class="metrics-title">Avg Response</p>
+                        <p class="metrics-value">${metrics.avgResponseTime}s</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAnomalies(anomalies) {
+            const anomaliesList = document.getElementById('anomaliesList');
+            
+            if (anomalies.length === 0) {
+                anomaliesList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 2rem;">No active anomalies detected</p>';
+                return;
+            }
+
+            anomaliesList.innerHTML = anomalies.map(anomaly => `
+                <div class="anomaly-card">
+                    <div class="anomaly-header" onclick="toggleDetails('${anomaly.id}')">
+                        <div class="anomaly-main">
+                            <div class="anomaly-icon" style="color: ${getSeverityColor(anomaly.severity)};">⚠️</div>
+                            <div class="anomaly-info">
+                                <h3>${anomaly.type}</h3>
+                                <div class="anomaly-meta">
+                                    <span>📍 ${anomaly.store}</span>
+                                    <span>🕐 ${getTimeAgo(anomaly.detectedAt)}</span>
+                                    <span class="severity-badge severity-${anomaly.severity.toLowerCase()}">${anomaly.severity}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="expand-btn">▼</button>
+                    </div>
+                    <div class="anomaly-details" id="details-${anomaly.id}">
+                        <div class="detail-section">
+                            <p class="detail-label">📋 Description</p>
+                            <p class="detail-text">${anomaly.description}</p>
+                        </div>
+                        <div class="detail-section">
+                            <p class="detail-label">🔍 Root Cause Analysis</p>
+                            <p class="detail-text">${anomaly.rootCause}</p>
+                            <div class="confidence-bar">
+                                <div class="confidence-label">Confidence: ${anomaly.confidence}%</div>
+                                <div class="confidence-track">
+                                    <div class="confidence-fill" style="width: ${anomaly.confidence}%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="detail-section recommendation">
+                            <p class="detail-label">💡 Recommended Action</p>
+                            <p class="detail-text">${anomaly.recommendation}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getSeverityColor(severity) {
+            const colors = {
+                Critical: '#ef4444',
+                High: '#f59e0b',
+                Medium: '#3b82f6',
+                Low: '#6b7280'
+            };
+            return colors[severity] || '#6b7280';
+        }
+
+        function toggleDetails(id) {
+            const details = document.getElementById(`details-${id}`);
+            details.classList.toggle('expanded');
+        }
+
+        function showUpdateIndicator() {
+            const indicator = document.getElementById('updateIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        function updateDashboard() {
+            const data = generateMockData();
+            renderMetrics(data.metrics);
+            renderAnomalies(data.anomalies);
+            showUpdateIndicator();
+        }
+
+        // Initial render
+        updateDashboard();
+
+        // Auto-refresh every 5 seconds
+        setInterval(updateDashboard, 5000);
+    </script>
+</body>
+</html>
