@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/Sentinel Ai Retail/',
+  base: '/Sentinel AI Retail/',
 })
+
 
